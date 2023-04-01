@@ -1,11 +1,11 @@
-#creating a new database
+#creating a new database(fine)
 GET http://35.184.131.198:8081/api/createDB/Hello2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# inserting a new collection with schema
-POST http://localhost:8081/api/createCol/Hello/first
+# inserting a new collection with schema(fine)
+POST http://35.184.131.198:8081/api/createCol/Hello2/first
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 content-type: application/json
@@ -28,45 +28,45 @@ content-type: application/json
 }
 
 ###
-#inserting a document
-POST http://localhost:8081/api/insertOne/Hello/first
+#inserting a document(fine)
+POST http://35.184.131.198:8082/api/insertOne/hello2/first
 X-Token: bootstrappingNode
 X-Username: bootstrappingNode
 content-type: application/json
 
 {
-  "name": "Samer",
-  "age": 15
+  "name": "FromIntellij",
+  "age": 22
 }
 
 ###
-# checking if 8081 is affinity
-GET http://localhost:8081/api/isAffinity
+# checking if 8081 is affinity (fine)
+GET http://35.184.131.198:8083/api/isAffinity
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-#delete the document
-DELETE http://localhost:8081/api/deleteDoc/Hello/first/b35355ff-608e-45a4-9bb1-81194b44e879
+#delete the document(fine)
+DELETE http://35.184.131.198:8081/api/deleteDoc/Hello2/first/661c5fb6-e690-487e-8d23-3a29865009d0
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
 #delete the collection
-DELETE http://localhost:8081/api/deleteCol/Hello/first
+DELETE http://35.184.131.198:8081/api/deleteCol/Hello/first
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
 # deleting the database
-DELETE http://localhost:8081/api/deleteDB/myfirstDB
+DELETE http://35.184.131.198:8081/api/deleteDB/Hello
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 
 ###
-# Filtering the data
-GET http://localhost:8081/api/filter/Hello/first?attributeName=name&attributeValue=AmazonianYazan
+# Filtering the data(fine)
+GET http://35.184.131.198:8081/api/filter/Hello2/first?attributeName=name&attributeValue=FromIntellij
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
@@ -77,45 +77,132 @@ X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# getting the collections in a database
-GET http://35.184.131.198:8082/api/getCollections/Hello
+# getting the collections in a database(fine)
+GET http://35.184.131.198:8083/api/getCollections/hello2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# getting all the documents in a collection
-GET http://35.184.131.198:8081/api/getAllData/Hello/first
+# getting all the documents in a collection(fine)
+GET http://35.184.131.198:8081/api/getAllDocs/Hello2/first
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# getting doc by id
-GET http://localhost:8081/api/getDoc/Hello/first/af2eef12-cf62-4dd1-bc91-ce243728f755
-X-Username: bootstrappingNode
-X-Token: bootstrappingNode
-
-
-###
-# modify the document
-POST http://localhost:8081/api/updateDoc/Hello/first/9d2150e7-51ef-4a51-b6f5-d41a11a03fef/age/66
+# getting doc by id(fine)
+GET http://35.184.131.198:8081/api/getDoc/Hello2/first/e3f36d96-5251-43dd-a327-1d3cee524c72
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 
 ###
-# adding new user
-GET http://localhost:8081/api/addAuthenticatedUser/bootstrappingNode/bootstrappingNode/tobedeleted/del
+# modify the document(fine)
+POST http://35.184.131.198:8083/api/updateDoc/Hello2/first/815e3196-4ef9-4531-8441-68e1095db461/age/2
+X-Username: bootstrappingNode
+X-Token: bootstrappingNode
+
+
+###
+# adding new user(bug)
+GET http://35.184.131.198:8082/api/addAuthenticatedUser/tobedeleted/del
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# adding new admin
-GET http://localhost:8081/api/Motasem/Boss/Fahed
+# adding new admin(bug)
+GET http://35.184.131.198:8081/api/addAdmin/Boss/Fahed
+X-Username: bootstrappingNode
+X-Token: bootstrappingNode
+
+
+
+###
+# removing a user(bug)
+DELETE http://35.184.131.198:8081/api/removeAuthenticatedUser/tobedeleted/del
+X-Username: bootstrappingNode
+X-Token: bootstrappingNode
+
+
+###
+# putting the name for each worker(fine)
+GET http://35.184.131.198:8083/api/setCurrentWorkerName/worker3
+
+
+
+###
+############################################################################################################
+# starting up the cluster
+
+###
+# putting the name for each worker(fine)
+GET http://35.184.131.198:8081/api/setCurrentWorkerName/worker1
+
+
+###
+# putting the name for each worker(fine)
+GET http://35.184.131.198:8082/api/setCurrentWorkerName/worker2
+
+
+###
+# putting the name for each worker(fine)
+GET http://35.184.131.198:8083/api/setCurrentWorkerName/worker3
+
+###
+# setting the first worker as affnity
+GET http://35.184.131.198:8081/api/setAffinity
+
+###
+# unset affinity
+GET http://35.184.131.198:8082/api/unsetAffinity
+
+###
+# unset affinity
+GET http://35.184.131.198:8083/api/unsetAffinity
+
+###
+#creating a new database(fine)
+GET http://35.184.131.198:8081/api/createDB/Hello2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# removing a user
-DELETE http://localhost:8081/api/removeAuthenticatedUser/tobedeleted/del
+# inserting a new collection with schema(fine)
+POST http://35.184.131.198:8081/api/createCol/Hello2/first
+X-Username: bootstrappingNode
+X-Token: bootstrappingNode
+content-type: application/json
+
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "age": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "age"
+  ],
+  "additionalProperties": false
+}
+
+###
+#inserting a document (fine)
+POST http://35.184.131.198:8083/api/insertOne/hello2/first
+X-Token: bootstrappingNode
+X-Username: bootstrappingNode
+content-type: application/json
+
+{
+  "name": "FromIntellij",
+  "age": 22
+}
+
+###
+# checking if affinity (fine)
+GET http://35.184.131.198:8081/api/isAffinity
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
