@@ -125,6 +125,8 @@ public class DocumentController {
                     if (responseEntity.getBody()) {
                         String affinityUrl = "http://" + worker + ":8081/api/insertOne/" + dbName + "/" + collectionName;
                         HttpHeaders headers = new HttpHeaders();
+                        headers.set("X-Username", username);
+                        headers.set("X-Token", token);
                         HttpEntity<String> affinityRequestEntity = new HttpEntity<>(json, headers);
                         restTemplate.postForObject(affinityUrl, affinityRequestEntity, ApiResponse.class);
                         break;
@@ -272,7 +274,10 @@ public class DocumentController {
             }
         } else {
             String url = "http://" + affinityName + ":8081/api/deleteDoc/" + dbName + "/" + collectionName + "/" + docId;
-            HttpEntity<String> requestEntity = new HttpEntity<>("", null);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Username", username);
+            headers.set("X-Token", token);
+            HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
             restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, String.class);
         }
         return new ApiResponse("Document deleted successfully.", 200);
@@ -385,14 +390,13 @@ public class DocumentController {
                 HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
                 restTemplate.postForObject(url, requestEntity, String.class);
             }
-        }
-        // If the current node is not the owner affinity node
-        else {
+        } else {
             String url = "http://" + affinityName + ":8081/api/updateDoc/" + dbName + "/" + collectionName + "/" + docId + "/" + propertyName + "/" + newValue;
             // Sending the current version of data to the affinity.
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Old-Value", currentObject.get(propertyName).toString());
-
+            headers.set("X-Username", username);
+            headers.set("X-Token", token);
             HttpEntity<String> requestEntity = new HttpEntity<>("", null);
             restTemplate.postForObject(url, requestEntity, String.class);
         }

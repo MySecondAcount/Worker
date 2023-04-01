@@ -73,7 +73,6 @@ public class DatabaseController {
                                       @RequestHeader(value = "X-Username") String username,
                                       @RequestHeader(value = "X-Token") String token) {
         name = name.toLowerCase();
-
         if (!authenticationService.isAuthenticatedUser(username, token)) {
             return new ApiResponse("User is not authorized.", 401);
         }

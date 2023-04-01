@@ -23,11 +23,6 @@ public class CommunicationController {
         return new ApiResponse("Affinity data added successfully!", 200);
     }
 
-    @GetMapping("/setAffinity")
-    public ApiResponse setAffinity() {
-        affinityManager.setCurrentWorkerAffinity();
-        return new ApiResponse("Affinity set successfully!", 200);
-    }
 
     @GetMapping("/addAuthenticatedUser/{username}/{token}")
     public ApiResponse addAuthenticatedUser(@PathVariable("username") String username, @PathVariable("token") String token,
@@ -66,6 +61,12 @@ public class CommunicationController {
 
         authenticationService.removeUser(username, token);
         return new ApiResponse("User removed successfully!", 200);
+    }
+
+    @GetMapping("/setAffinity")
+    public ApiResponse setAffinity() {
+        affinityManager.setCurrentWorkerAffinity();
+        return new ApiResponse("Affinity set successfully!", 200);
     }
 
     @GetMapping("/unsetAffinity")

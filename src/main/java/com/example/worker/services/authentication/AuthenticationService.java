@@ -38,6 +38,7 @@ public class AuthenticationService {
             content = "[]";
         JSONArray jsonArray = new JSONArray(content);
         JSONObject jsonObject = new JSONObject();
+
         jsonObject.put("username", username);
         jsonObject.put("token", token);
 
