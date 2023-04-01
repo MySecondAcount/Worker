@@ -74,7 +74,7 @@ public class CommunicationController {
 
     @GetMapping("/setAffinity")
     public ApiResponse setAffinity() {
-        logger.info("the current worker" + affinityManager.getCurrentWorkerName() + " is set to be affinity!");
+        logger.info("the current worker (" + affinityManager.getCurrentWorkerName() + ")is set to be affinity!");
         affinityManager.setCurrentWorkerAffinity();
         return new ApiResponse("Affinity set successfully!", 200);
     }

@@ -70,9 +70,11 @@ public class DocumentController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
+
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
-        logger.info("Inserting document into database: {}, collection: {}", dbName, collectionName);
+        logger.info("Inserting document into database: {}, collection: {}" + (propagatedRequest ? " (propagated)" : ""), dbName, collectionName);
+
         if (!authenticationService.isAuthenticatedUser(username, token)) {
             logger.warn("User is not authorized: {}", username);
             return new ApiResponse("User is not authorized.", 401);
@@ -250,10 +252,11 @@ public class DocumentController {
             @RequestHeader(value = "X-Propagate-Request", defaultValue = "false") boolean propagatedRequest,
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token) {
-        logger.info("Deleting document with ID " + docId + " from collection " + collectionName + " in database " + dbName + ".");
-
+        logger.info("Deleting document with ID " + docId + " from collection " + collectionName +
+                " in database " + dbName + (propagatedRequest ? " (propagated)" : "") + ".");
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
+
         if (!authenticationService.isAuthenticatedUser(username, token)) {
             logger.info("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
@@ -332,7 +335,8 @@ public class DocumentController {
             @RequestHeader(value = "X-Token") String token,
             @RequestHeader(value = "X-Old-Value", required = false) String oldValue
     ) {
-        logger.info("Updating document with ID " + docId + " in collection " + collectionName + " in database " + dbName + ".");
+        logger.info("Updating document with ID " + docId + " in collection " + collectionName + " in database " + dbName
+                + (propagatedRequest ? " (propagated)" : "") + ".");
 
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
@@ -440,7 +444,7 @@ public class DocumentController {
             headers.set("X-Old-Value", currentObject.get(propertyName).toString());
             headers.set("X-Username", username);
             headers.set("X-Token", token);
-            HttpEntity<String> requestEntity = new HttpEntity<>("", null);
+            HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
             restTemplate.postForObject(url, requestEntity, String.class);
         }
         logger.info("Document updated successfully.");

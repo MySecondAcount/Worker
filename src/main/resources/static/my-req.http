@@ -29,7 +29,7 @@ content-type: application/json
 
 ###
 #inserting a document(fine)
-POST http://35.184.131.198:8082/api/insertOne/hello2/first
+POST http://35.184.131.198:8081/api/insertOne/hello2/first
 X-Token: bootstrappingNode
 X-Username: bootstrappingNode
 content-type: application/json
@@ -41,7 +41,7 @@ content-type: application/json
 
 ###
 # checking if 8081 is affinity (fine)
-GET http://35.184.131.198:8083/api/isAffinity
+GET http://35.184.131.198:8082/api/isAffinity
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
@@ -66,13 +66,13 @@ X-Token: bootstrappingNode
 
 ###
 # Filtering the data(fine)
-GET http://35.184.131.198:8081/api/filter/Hello2/first?attributeName=name&attributeValue=FromIntellij
+GET http://35.184.131.198:8083/api/filter/Hello2/first?attributeName=name&attributeValue=FromIntellij
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
 # getting the databases(fine)
-GET http://35.184.131.198:8083/api/listDB
+GET http://35.184.131.198:8082/api/listDB
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
@@ -97,7 +97,7 @@ X-Token: bootstrappingNode
 
 ###
 # modify the document(fine)
-POST http://35.184.131.198:8083/api/updateDoc/Hello2/first/815e3196-4ef9-4531-8441-68e1095db461/age/2
+POST http://35.184.131.198:8081/api/updateDoc/Hello2/first/f5755238-14bf-4937-92e1-503013a7e3c4/age/2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
@@ -161,7 +161,7 @@ GET http://35.184.131.198:8083/api/unsetAffinity
 
 ###
 #creating a new database(fine)
-GET http://35.184.131.198:8081/api/createDB/Hello2
+GET http://35.184.131.198:8082/api/createDB/Hello2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 

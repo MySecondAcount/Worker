@@ -25,24 +25,12 @@ public class PropertyIndexManager {
 
     public static void buildInitialIndexing() {
         File dbsDir = new File(DATABASES_DIRECTORY);
-        System.out.println("the name of the file is: " + dbsDir.getName());
-
-        if (dbsDir.exists()) {
-            System.out.println("the file exists");
-        } else {
-            System.out.println("the file does not exist");
-        }
-
         for (String dbName : dbsDir.list()) {
             File dbDir = new File(DATABASES_DIRECTORY + dbName);
-            System.out.println("the db name is : " + dbDir.getName());
-
             for (String collectionName : dbDir.list()) {
                 if (collectionName.equals("schemas")) {
                     continue;
                 }
-
-                System.out.println("the collection name is : " + collectionName);
                 File collectionFile = new File(DATABASES_DIRECTORY + dbName + "/" + collectionName.toLowerCase());
                 JSONArray collectionArray = new JSONArray(readFileAsString(collectionFile));
                 for (int i = 0; i < collectionArray.length(); i++) {

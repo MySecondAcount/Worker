@@ -40,7 +40,8 @@ public class CollectionController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
-        logger.info("Received request to create collection " + collectionName + " in database " + dbName);
+        logger.info("Received request to create collection " + collectionName + " in database " + dbName
+                + (propagateRequest ? " (propagated)" : "") + " from user " + username);
 
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
@@ -95,7 +96,8 @@ public class CollectionController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
-        logger.info("Received request to delete collection '{}.{}'", dbName, collectionName);
+        logger.info("Received request to delete collection '{}.{}'"
+                + (propagateRequest ? " (propagated)" : ""), dbName, collectionName);
 
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
@@ -160,9 +162,11 @@ public class CollectionController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
+        logger.info("Received request to filter collection '{}.{}' by attribute '{}={}'", dbName, collectionName, attributeName, attributeValue);
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.warn("User is not authorized to filter collection '{}.{}'.", dbName, collectionName);
             return new ApiResponse("User is not authorized.", 401);
         }
 
