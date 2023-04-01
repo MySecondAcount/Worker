@@ -11,6 +11,8 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.ValidationMessage;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -32,6 +34,7 @@ public class DocumentController {
     private AffinityManager affinityManager = AffinityManager.getInstance();
     private RestTemplate restTemplate = new RestTemplate();
     private AuthenticationService authenticationService = new AuthenticationService();
+    private Logger logger = LoggerFactory.getLogger(DocumentController.class);
 
     public boolean validJSONObject(String json, File schemaFile) {
         try {
@@ -69,7 +72,9 @@ public class DocumentController {
     ) {
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
+        logger.info("Inserting document into database: {}, collection: {}", dbName, collectionName);
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.warn("User is not authorized: {}", username);
             return new ApiResponse("User is not authorized.", 401);
         }
 
@@ -80,15 +85,19 @@ public class DocumentController {
         if (propagatedRequest) { // Just take the new copy of the data. (no need to propagate it again)
             dao.addDocument(collectionFile, json);
             propertyIndexManager.indexingNewObject(dbName, collectionName, new JSONObject(json));
+            logger.info("Document inserted successfully");
             return new ApiResponse("Document inserted successfully.", 200);
         }
         if (!isDatabaseExists(dbDirectory)) {
+            logger.warn("Database does not exist: {}", dbName);
             return new ApiResponse("Database does not exist.", 400);
         }
         if (!isCollectionExists(collectionFile)) {
+            logger.warn("Collection does not exist: {}", collectionName);
             return new ApiResponse("Collection does not exist.", 400);
         }
         if (!validJSONObject(json, schemaFile)) {
+            logger.warn("Invalid JSON object: {}", json);
             return new ApiResponse("Invalid JSON object.", 400);
         }
         // the current worker is the affinity worker
@@ -134,6 +143,7 @@ public class DocumentController {
                 }
             }
         }
+        logger.info("Document inserted successfully");
         return new ApiResponse("Document inserted successfully.", 200);
     }
 
@@ -148,6 +158,7 @@ public class DocumentController {
             nextWorkerName = "worker3";
         } else
             nextWorkerName = "worker1";
+        logger.info("Passing the affinity from " + currentWorkerName + " to the next worker: " + nextWorkerName);
 
         String url = "http://" + nextWorkerName + ":8081/api/setAffinity";
         HttpEntity<String> requestEntity = new HttpEntity<>("", null);
@@ -162,9 +173,14 @@ public class DocumentController {
             @PathVariable("doc_id") String docId,
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token) {
+
+        logger.info("Getting document with ID " + docId + " from collection " + collectionName + " in database " + dbName + ".");
+
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
+
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.info("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
 
@@ -172,9 +188,11 @@ public class DocumentController {
         File collectionFile = new File(DATABASES_DIRECTORY + dbName + "/" + collectionName + ".json");
 
         if (!isDatabaseExists(dbDirectory)) {
+            logger.info("Database does not exist.");
             return new ApiResponse("Database does not exist.", 400);
         }
         if (!isCollectionExists(collectionFile)) {
+            logger.info("Collection does not exist.");
             return new ApiResponse("Collection does not exist.", 400);
         }
 
@@ -182,11 +200,12 @@ public class DocumentController {
         if (obj == null) {
             return new ApiResponse("Document with ID " + docId + " not found in collection " + collectionName + ".", 404);
         } else {
+            logger.info("Document with ID " + docId + " found in collection " + collectionName + ".");
             return new ApiResponse(obj.toString(), 200);
         }
     }
 
-    @GetMapping("/getAllData/{db_name}/{collection_name}")
+    @GetMapping("/getAllDocs/{db_name}/{collection_name}")
     @ResponseBody
     public ApiResponse getAll(
             @PathVariable("db_name") String db_name,
@@ -194,15 +213,19 @@ public class DocumentController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
+        logger.info("Getting all documents from collection " + collection_name + " in database " + db_name + ".");
+
         db_name = db_name.toLowerCase();
         collection_name = collection_name.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.info("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
 
         ApiResponse response = new ApiResponse("", 200);
         File collectionFile = new File(DATABASES_DIRECTORY + db_name + "/" + collection_name + ".json");
         if (!collectionFile.exists()) {
+            logger.info("Collection does not exist.");
             response.setMessage("Collection does not exist.");
             response.setStatusCode(400);
         } else {
@@ -227,9 +250,12 @@ public class DocumentController {
             @RequestHeader(value = "X-Propagate-Request", defaultValue = "false") boolean propagatedRequest,
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token) {
+        logger.info("Deleting document with ID " + docId + " from collection " + collectionName + " in database " + dbName + ".");
+
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.info("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
 
@@ -237,9 +263,11 @@ public class DocumentController {
         File collectionFile = new File(DATABASES_DIRECTORY + dbName + "/" + collectionName + ".json");
 
         if (!isDatabaseExists(dbDirectory)) {
+            logger.info("Database does not exist.");
             return new ApiResponse("Database does not exist.", 400);
         }
         if (!isCollectionExists(collectionFile)) {
+            logger.info("Collection does not exist.");
             return new ApiResponse("Collection does not exist.", 400);
         }
         // Read the contents of the collection file
@@ -263,6 +291,7 @@ public class DocumentController {
 
         // the document is owned by the current worker
         if (affinityName.equals(affinityManager.getCurrentWorkerName())) {
+            logger.info("propagating delete request to all workers");
             for (String worker : affinityManager.getWorkers()) {
                 String url = "http://" + worker + ":8081/api/deleteDoc/" + dbName + "/" + collectionName + "/" + docId;
                 HttpHeaders headers = new HttpHeaders();
@@ -280,6 +309,7 @@ public class DocumentController {
             HttpEntity<String> requestEntity = new HttpEntity<>("", headers);
             restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, String.class);
         }
+        logger.info("Document deleted successfully.");
         return new ApiResponse("Document deleted successfully.", 200);
     }
 
@@ -302,9 +332,12 @@ public class DocumentController {
             @RequestHeader(value = "X-Token") String token,
             @RequestHeader(value = "X-Old-Value", required = false) String oldValue
     ) {
+        logger.info("Updating document with ID " + docId + " in collection " + collectionName + " in database " + dbName + ".");
+
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.info("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
 
@@ -312,15 +345,18 @@ public class DocumentController {
         File collectionFile = new File(DATABASES_DIRECTORY + dbName + "/" + collectionName + ".json");
 
         if (!isDatabaseExists(dbDirectory)) {
+            logger.warn("Database does not exist.");
             return new ApiResponse("Database does not exist.", 400);
         }
 
         if (!isCollectionExists(collectionFile)) {
+            logger.warn("Collection does not exist.");
             return new ApiResponse("Collection does not exist.", 400);
         }
 
         JSONObject currentObject = dao.getDocument(dbName, collectionName, docId);
         if (currentObject == null) {
+            logger.warn("Document with ID " + docId + " not found in collection " + collectionName + ".");
             return new ApiResponse("Document with ID " + docId + " not found in collection " + collectionName + ".", 404);
         }
 
@@ -352,6 +388,7 @@ public class DocumentController {
 
         // check if the new json object is valid
         if (!validJSONObject(newObject.toString(), schemaFile)) {
+            logger.warn("Invalid JSON object.");
             return new ApiResponse("Invalid JSON object.", 400);
         }
 
@@ -377,12 +414,17 @@ public class DocumentController {
             if (oldValue != null) {
                 String currentObjectValue = currentObject.get(propertyName).toString();
                 if (!oldValue.equals(currentObjectValue)) {
-                    return new ApiResponse("your version of this document doesn't match the up-to-date document (optimistic looking rules violation)", 400);
+                    return new ApiResponse
+                            ("your version of this document doesn't match the up-to-date document " +
+                                    "(optimistic looking rules violation)", 400);
                 }
             }
+
+            logger.info("propagating the update request to all the nodes...");
             // Propagate the request to all the nodes.
             for (String worker : affinityManager.getWorkers()) {
-                String url = "http://" + worker + ":8081/api/updateDoc/" + dbName + "/" + collectionName + "/" + docId + "/" + propertyName + "/" + newValue;
+                String url = "http://" + worker + ":8081/api/updateDoc/" + dbName + "/" +
+                        collectionName + "/" + docId + "/" + propertyName + "/" + newValue;
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("X-Propagate-Request", "true");
                 headers.set("X-Username", username);
@@ -391,7 +433,8 @@ public class DocumentController {
                 restTemplate.postForObject(url, requestEntity, String.class);
             }
         } else {
-            String url = "http://" + affinityName + ":8081/api/updateDoc/" + dbName + "/" + collectionName + "/" + docId + "/" + propertyName + "/" + newValue;
+            String url = "http://" + affinityName + ":8081/api/updateDoc/" + dbName + "/" +
+                    collectionName + "/" + docId + "/" + propertyName + "/" + newValue;
             // Sending the current version of data to the affinity.
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Old-Value", currentObject.get(propertyName).toString());
@@ -400,6 +443,7 @@ public class DocumentController {
             HttpEntity<String> requestEntity = new HttpEntity<>("", null);
             restTemplate.postForObject(url, requestEntity, String.class);
         }
+        logger.info("Document updated successfully.");
         return new ApiResponse("Document updated successfully.", 200);
     }
 }

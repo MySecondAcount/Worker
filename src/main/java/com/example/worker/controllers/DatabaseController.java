@@ -6,6 +6,8 @@ import com.example.worker.model.ApiResponse;
 import com.example.worker.services.affinity.AffinityManager;
 import com.example.worker.services.authentication.AuthenticationService;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -25,26 +27,31 @@ public class DatabaseController {
     private AuthenticationService authenticationService = new AuthenticationService();
     private RestTemplate restTemplate = new RestTemplate();
     private AffinityManager affinityManager = AffinityManager.getInstance();
+    private Logger logger = LoggerFactory.getLogger(CollectionController.class);
 
     @GetMapping("/createDB/{name}")
     public ApiResponse createDatabase(@PathVariable("name") String name,
-                                      @RequestHeader(value = "X-Propagate-Request", defaultValue = "false") boolean propagateRequest,
+                                      @RequestHeader(value = "X-Propagate-Request", defaultValue = "false") boolean propagatedRequest,
                                       @RequestHeader(value = "X-Username") String username,
                                       @RequestHeader(value = "X-Token") String token) {
-        name = name.toLowerCase();
 
+        logger.info("Creating database " + name + (propagatedRequest ? " (propagated)" : ""));
+        name = name.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.warn("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
 
         // Check if the database directory exists
         File dbDirectory = new File(DATABASES_DIRECTORY + name);
         if (dbDirectory.exists() && dbDirectory.isDirectory()) {
+            logger.warn("Database already exists.");
             return new ApiResponse("Database already exists.", 400);
         }
 
         // Propagate the request to the other nodes
-        if (!propagateRequest) {
+        if (!propagatedRequest) {
+            logger.info("Propagating request to other nodes.");
             for (String worker : affinityManager.getWorkers()) {
                 String url = "http://" + worker + ":8081/api/createDB/" + name;
                 HttpHeaders headers = new HttpHeaders();
@@ -57,6 +64,7 @@ public class DatabaseController {
         } else {
             // Create the database directory
             if (!dbDirectory.mkdirs()) {
+                logger.error("Error creating database.");
                 return new ApiResponse("Error creating database.", 500);
             } else {
                 // creating the schemas directory
@@ -64,25 +72,31 @@ public class DatabaseController {
                 schemasDirectory.mkdirs();
             }
         }
+
+        logger.info("Database created successfully.");
         return new ApiResponse("Database created successfully.", 200);
     }
 
     @DeleteMapping("deleteDB/{name}")
     public ApiResponse deleteDatabase(@PathVariable("name") String name
-            , @RequestHeader(value = "X-Propagate-Request", defaultValue = "false") boolean propagateRequest,
+            , @RequestHeader(value = "X-PropagateRequest", defaultValue = "false") boolean propagatedRequest,
                                       @RequestHeader(value = "X-Username") String username,
                                       @RequestHeader(value = "X-Token") String token) {
+
+        logger.info("Deleting database " + name + (propagatedRequest ? " (propagated)" : ""));
         name = name.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
             return new ApiResponse("User is not authorized.", 401);
         }
 
+
         File dbDirectory = new File(DATABASES_DIRECTORY + name);
         if (!dbDirectory.exists() && !dbDirectory.isDirectory()) {
+            logger.warn("Database does not exist.");
             return new ApiResponse("Database does not exist.", 400);
         }
 
-        if (propagateRequest) {
+        if (propagatedRequest) {
             try {
                 propertyIndexManager.clearDBIndexing(name);
                 dao.clearDBCache(dbDirectory);
@@ -91,6 +105,7 @@ public class DatabaseController {
                 return new ApiResponse("Error deleting database.", 500);
             }
         } else {
+            logger.info("Propagating request to other nodes.");
             for (String worker : affinityManager.getWorkers()) {
                 String url = "http://" + worker + ":8081/api/deleteDB/" + name;
                 HttpHeaders headers = new HttpHeaders();
@@ -101,15 +116,18 @@ public class DatabaseController {
                 restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, String.class);
             }
         }
+
+        logger.info("Database deleted successfully.");
         return new ApiResponse("Database deleted successfully.", 200);
     }
 
     @GetMapping("/listDB")
     public ApiResponse listDatabases(@RequestHeader(value = "X-Username") String username,
                                      @RequestHeader(value = "X-Token") String token) {
-
+        logger.info("Requesting list of databases.");
 
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.warn("User is not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
 

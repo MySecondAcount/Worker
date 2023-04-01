@@ -84,7 +84,7 @@ X-Token: bootstrappingNode
 
 ###
 # getting all the documents in a collection(fine)
-GET http://35.184.131.198:8081/api/getAllData/Hello2/first
+GET http://35.184.131.198:8081/api/getAllDocs/Hello2/first
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 

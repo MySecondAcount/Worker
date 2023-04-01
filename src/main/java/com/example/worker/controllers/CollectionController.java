@@ -7,6 +7,8 @@ import com.example.worker.model.Schema;
 import com.example.worker.services.affinity.AffinityManager;
 import com.example.worker.services.authentication.AuthenticationService;
 import org.json.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,6 +28,7 @@ public class CollectionController {
     private PropertyIndexManager propertyIndexManager = PropertyIndexManager.getInstance();
     private AuthenticationService authenticationService = new AuthenticationService();
     private AffinityManager affinityManager = AffinityManager.getInstance();
+    private Logger logger = LoggerFactory.getLogger(CollectionController.class);
 
     @PostMapping("createCol/{db_name}/{collection_name}")
     @ResponseBody
@@ -37,17 +40,24 @@ public class CollectionController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
+        logger.info("Received request to create collection " + collectionName + " in database " + dbName);
+
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
 
+
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.warn("User was not authorized.");
             return new ApiResponse("User is not authorized.", 401);
         }
+
         File collectionFile = new File(DATABASES_DIRECTORY + dbName + "/" + collectionName + ".json");
         ApiResponse response = new ApiResponse("", 200);
 
         if (propagateRequest) {
+            logger.info("the request was propagated.");
             if (collectionFile.exists()) {
+                logger.warn("Collection already exists.");
                 response.setMessage("Collection already exists.");
                 response.setStatusCode(400);
             } else {
@@ -57,8 +67,7 @@ public class CollectionController {
                 response.setStatusCode(200);
             }
         } else {
-
-
+            logger.info("started to propagate the request.");
             // Propagate the request to the other nodes
             for (String worker : affinityManager.getWorkers()) {
                 String url = "http://" + worker + ":8081/api/createCol/" + dbName + "/" + collectionName;
@@ -73,10 +82,10 @@ public class CollectionController {
             }
         }
 
+        logger.info("Finished creating collection " + collectionName + " in database " + dbName);
         return response;
     }
 
-    // deleting the collection on the current link : /api/deleteCol/db/{db_name}/collection/{collection_name}
     @DeleteMapping("/deleteCol/{db_name}/{collection_name}")
     @ResponseBody
     public ApiResponse deleteCollection(
@@ -86,10 +95,12 @@ public class CollectionController {
             @RequestHeader(value = "X-Username") String username,
             @RequestHeader(value = "X-Token") String token
     ) {
+        logger.info("Received request to delete collection '{}.{}'", dbName, collectionName);
 
         dbName = dbName.toLowerCase();
         collectionName = collectionName.toLowerCase();
         if (!authenticationService.isAuthenticatedUser(username, token)) {
+            logger.warn("User is not authorized to delete collection '{}.{}'.", dbName, collectionName);
             return new ApiResponse("User is not authorized.", 401);
         }
 
@@ -97,6 +108,7 @@ public class CollectionController {
         ApiResponse response = new ApiResponse("", 200);
 
         if (!collectionFile.exists()) {
+            logger.warn("Collection '{}.{}' does not exist.", dbName, collectionName);
             response.setMessage("Collection does not exist.");
             response.setStatusCode(400);
             return response;
@@ -114,10 +126,12 @@ public class CollectionController {
                     schemaFile.delete();
                 }
 
+                logger.info("Collection '{}.{}' deleted successfully.", dbName, collectionName);
                 response.setMessage("Collection deleted successfully.");
                 response.setStatusCode(200);
 
             } catch (Exception e) {
+                logger.error("Error deleting collection '{}.{}'.", dbName, collectionName, e);
                 response.setMessage("Error deleting collection.");
                 response.setStatusCode(500);
             }
@@ -135,7 +149,6 @@ public class CollectionController {
         }
         return response;
     }
-
 
     @GetMapping("/filter/{db_name}/{collectionName}")
     @ResponseBody
@@ -156,6 +169,7 @@ public class CollectionController {
         // to check if the db exists
         File dbDirectory = new File(DATABASES_DIRECTORY + dbName);
         if (!dbDirectory.exists() && !dbDirectory.isDirectory()) {
+            logger.error("Database does not exist. dbName={}", dbName);
             return new ApiResponse("Database does not exist.", 400);
         }
 
@@ -163,6 +177,7 @@ public class CollectionController {
         ApiResponse response = new ApiResponse("", 200);
 
         if (!collectionFile.exists()) {
+            logger.error("Collection does not exist. dbName={}, collectionName={}", dbName, collectionName);
             response.setMessage("Collection does not exist.");
             response.setStatusCode(400);
             return response;
@@ -171,33 +186,40 @@ public class CollectionController {
         // First, check if the index exists
         JSONArray collections = propertyIndexManager.getMatchingDocs(dbName, collectionName, attributeName, attributeValue);
         if (collections != null) {
+            logger.info("Filtered data retrieved from property index. dbName={}, collectionName={}, attributeName={}, attributeValue={}", dbName, collectionName, attributeName, attributeValue);
             response.setMessage(collections.toString());
             response.setStatusCode(200);
             return response;
         }
 
         // else, read it from the file system
-        response.setMessage(dao.getFilteredData(collectionFile, attributeName, attributeValue).toString());
+        JSONArray filteredData = dao.getFilteredData(collectionFile, attributeName, attributeValue);
+        logger.info("Filtered data retrieved from file system. dbName={}, collectionName={}, attributeName={}, attributeValue={}", dbName, collectionName, attributeName, attributeValue);
+        response.setMessage(filteredData.toString());
         response.setStatusCode(200);
 
         return response;
     }
 
+
     @GetMapping("getCollections/{db_name}")
     public ApiResponse getCollections(@PathVariable("db_name") String dbName,
                                       @RequestHeader(value = "X-Username") String username,
                                       @RequestHeader(value = "X-Token") String token) {
+        logger.info("Received request to get all collections in database '{}'", dbName);
 
         dbName = dbName.toLowerCase();
-
         if (!authenticationService.isAuthenticatedUser(username, token)) {
             return new ApiResponse("User is not authorized.", 401);
         }
 
         File dbDirectory = new File(DATABASES_DIRECTORY + dbName);
         if (!isDatabaseExists(dbDirectory)) {
+            logger.error("Database does not exist. dbName={}", dbName);
             return new ApiResponse("Database does not exist.", 400);
         }
+
+        logger.info("Finished getting all collections in database '{}'", dbName);
         return new ApiResponse(dao.allCollections(dbDirectory), 200);
     }
 }
