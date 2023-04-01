@@ -131,7 +131,7 @@ GET http://35.184.131.198:8083/api/setCurrentWorkerName/worker3
 
 ###
 ############################################################################################################
-# this is the setup for starting up the cluster
+# starting up the cluster
 
 ###
 # putting the name for each worker(fine)
