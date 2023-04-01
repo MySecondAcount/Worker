@@ -85,4 +85,9 @@ public class CommunicationController {
         affinityManager.setCurrentWorkerName(name);
         return new ApiResponse("Current worker name set successfully!", 200);
     }
+
+    @GetMapping("/getCurrentWorkerName")
+    public String getCurrentWorkerName() {
+        return affinityManager.getCurrentWorkerName();
+    }
 }

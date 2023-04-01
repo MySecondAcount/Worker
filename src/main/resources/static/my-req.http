@@ -1,11 +1,11 @@
-#creating a new database
+#creating a new database(fine)
 GET http://35.184.131.198:8081/api/createDB/Hello2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# inserting a new collection with schema
-POST http://localhost:8081/api/createCol/Hello/first
+# inserting a new collection with schema(fine)
+POST http://35.184.131.198:8081/api/createCol/Hello2/first
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 content-type: application/json
@@ -28,15 +28,15 @@ content-type: application/json
 }
 
 ###
-#inserting a document
-POST http://localhost:8081/api/insertOne/Hello/first
+#inserting a document(fine)
+POST http://35.184.131.198:8081/api/insertOne/Hello2/first
 X-Token: bootstrappingNode
 X-Username: bootstrappingNode
 content-type: application/json
 
 {
-  "name": "Samer",
-  "age": 15
+  "name": "FromIntellij",
+  "age": 22
 }
 
 ###
@@ -77,14 +77,14 @@ X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# getting the collections in a database
-GET http://35.184.131.198:8082/api/getCollections/Hello
+# getting the collections in a database(fine)
+GET http://35.184.131.198:8083/api/getCollections/hello2
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
 ###
-# getting all the documents in a collection
-GET http://35.184.131.198:8081/api/getAllData/Hello/first
+# getting all the documents in a collection(fine)
+GET http://35.184.131.198:8083/api/getAllData/Hello2/first
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
 
@@ -119,3 +119,8 @@ X-Token: bootstrappingNode
 DELETE http://localhost:8081/api/removeAuthenticatedUser/tobedeleted/del
 X-Username: bootstrappingNode
 X-Token: bootstrappingNode
+
+
+###
+# putting the name for each worker(fine)
+GET http://35.184.131.198:8083/api/setCurrentWorkerName/worker3
