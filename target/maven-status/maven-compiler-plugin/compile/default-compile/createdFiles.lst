@@ -1,0 +1,15 @@
+com\example\worker\services\FileServices.class
+com\example\worker\WorkerApplication.class
+com\example\worker\indexing\PropertyIndexManager.class
+com\example\worker\model\ApiResponse.class
+com\example\worker\model\Schema.class
+com\example\worker\caching\LRUCache.class
+com\example\worker\controllers\CollectionController.class
+com\example\worker\controllers\DatabaseController.class
+com\example\worker\controllers\DocumentController.class
+com\example\worker\controllers\CommunicationController.class
+com\example\worker\services\authentication\AuthenticationService.class
+com\example\worker\indexing\PropertyIndex.class
+com\example\worker\caching\LRUCache$Node.class
+com\example\worker\services\affinity\AffinityManager.class
+com\example\worker\DAO\DAO.class
